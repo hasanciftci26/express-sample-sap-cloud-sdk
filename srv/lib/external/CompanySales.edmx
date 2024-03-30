@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+  <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/Common.xml">
+    <edmx:Include Alias="Common" Namespace="com.sap.vocabularies.Common.v1"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.xml">
+    <edmx:Include Alias="Core" Namespace="Org.OData.Core.V1"/>
+  </edmx:Reference>
+  <edmx:DataServices>
+    <Schema Namespace="CompanySales" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EntityContainer Name="EntityContainer">
+        <EntitySet Name="Products" EntityType="CompanySales.Products">
+          <NavigationPropertyBinding Path="toPlant" Target="Plants"/>
+        </EntitySet>
+        <EntitySet Name="Plants" EntityType="CompanySales.Plants"/>
+        <EntitySet Name="SalesHeaders" EntityType="CompanySales.SalesHeaders">
+          <NavigationPropertyBinding Path="toSalesItems" Target="SalesItems"/>
+        </EntitySet>
+        <EntitySet Name="SalesItems" EntityType="CompanySales.SalesItems">
+          <NavigationPropertyBinding Path="toSalesHeader" Target="SalesHeaders"/>
+          <NavigationPropertyBinding Path="toProduct" Target="Products"/>
+        </EntitySet>
+        <FunctionImport Name="generateSalesReport" Function="CompanySales.generateSalesReport"/>
+        <ActionImport Name="updateProductPlant" Action="CompanySales.updateProductPlant"/>
+      </EntityContainer>
+      <EntityType Name="Products">
+        <Key>
+          <PropertyRef Name="ID"/>
+        </Key>
+        <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+        <Property Name="name" Type="Edm.String" MaxLength="100"/>
+        <Property Name="plant" Type="Edm.String" MaxLength="4"/>
+        <Property Name="price" Type="Edm.Decimal" Precision="13" Scale="2"/>
+        <Property Name="currency" Type="Edm.String" MaxLength="5" DefaultValue="EUR"/>
+        <NavigationProperty Name="toPlant" Type="CompanySales.Plants">
+          <ReferentialConstraint Property="plant" ReferencedProperty="ID"/>
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="Plants">
+        <Key>
+          <PropertyRef Name="ID"/>
+        </Key>
+        <Property Name="ID" Type="Edm.String" MaxLength="4" Nullable="false"/>
+        <Property Name="name" Type="Edm.String" MaxLength="40"/>
+        <Property Name="location" Type="Edm.String" MaxLength="40"/>
+      </EntityType>
+      <EntityType Name="SalesHeaders">
+        <Key>
+          <PropertyRef Name="ID"/>
+        </Key>
+        <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+        <Property Name="totalPrice" Type="Edm.Decimal" Precision="13" Scale="2"/>
+        <Property Name="currency" Type="Edm.String" MaxLength="5" DefaultValue="EUR"/>
+        <Property Name="createdAt" Type="Edm.DateTimeOffset"/>
+        <NavigationProperty Name="toSalesItems" Type="Collection(CompanySales.SalesItems)" Partner="toSalesHeader">
+          <OnDelete Action="Cascade"/>
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="SalesItems">
+        <Key>
+          <PropertyRef Name="salesID"/>
+          <PropertyRef Name="itemNo"/>
+        </Key>
+        <Property Name="salesID" Type="Edm.Guid" Nullable="false"/>
+        <Property Name="itemNo" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="productID" Type="Edm.Guid"/>
+        <Property Name="quantity" Type="Edm.Int32"/>
+        <Property Name="unitPrice" Type="Edm.Decimal" Precision="13" Scale="2"/>
+        <Property Name="currency" Type="Edm.String" MaxLength="5" DefaultValue="EUR"/>
+        <NavigationProperty Name="toSalesHeader" Type="CompanySales.SalesHeaders" Partner="toSalesItems">
+          <ReferentialConstraint Property="salesID" ReferencedProperty="ID"/>
+        </NavigationProperty>
+        <NavigationProperty Name="toProduct" Type="CompanySales.Products">
+          <ReferentialConstraint Property="productID" ReferencedProperty="ID"/>
+        </NavigationProperty>
+      </EntityType>
+      <ComplexType Name="ProductPlant">
+        <Property Name="productID" Type="Edm.Guid"/>
+        <Property Name="newPlant" Type="Edm.String" MaxLength="4"/>
+      </ComplexType>
+      <ComplexType Name="SalesReport">
+        <Property Name="salesID" Type="Edm.Guid"/>
+        <Property Name="itemNo" Type="Edm.Int32"/>
+        <Property Name="productID" Type="Edm.Guid"/>
+        <Property Name="productName" Type="Edm.String" MaxLength="100"/>
+        <Property Name="plant" Type="Edm.String" MaxLength="4"/>
+        <Property Name="plantName" Type="Edm.String" MaxLength="40"/>
+        <Property Name="plantLocation" Type="Edm.String" MaxLength="40"/>
+        <Property Name="price" Type="Edm.Decimal" Precision="13" Scale="2"/>
+        <Property Name="currency" Type="Edm.String" MaxLength="5" DefaultValue="EUR"/>
+        <Property Name="quantity" Type="Edm.Int32"/>
+      </ComplexType>
+      <Function Name="generateSalesReport" IsBound="false" IsComposable="false">
+        <ReturnType Type="Collection(CompanySales.SalesReport)" Nullable="false"/>
+      </Function>
+      <Action Name="updateProductPlant" IsBound="false">
+        <Parameter Name="product" Type="CompanySales.ProductPlant"/>
+        <ReturnType Type="Edm.Boolean"/>
+      </Action>
+      <Annotations Target="CompanySales.Products/ID">
+        <Annotation Term="Core.ComputedDefaultValue" Bool="true"/>
+      </Annotations>
+      <Annotations Target="CompanySales.SalesHeaders/ID">
+        <Annotation Term="Core.ComputedDefaultValue" Bool="true"/>
+      </Annotations>
+      <Annotations Target="CompanySales.SalesHeaders/createdAt">
+        <Annotation Term="Core.Computed" Bool="true"/>
+      </Annotations>
+      <Annotations Target="CompanySales.SalesItems/salesID">
+        <Annotation Term="Core.ComputedDefaultValue" Bool="true"/>
+      </Annotations>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

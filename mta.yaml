@@ -1,0 +1,43 @@
+_schema-version: "3.2"
+ID: company-sales-consumer
+version: 0.0.1
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm --prefix srv run build
+modules:
+# ------------------- Backend Nodejs Module -----------------------------------
+- name: company-sales-consumer-srv
+# -----------------------------------------------------------------------------
+  type: nodejs
+  path: srv/dist
+  requires:
+  - name: company-sales-consumer-auth
+  - name: company-sales-consumer-dest
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    disk-quota: 256M
+    memory: 256M
+resources:
+# --------------------- Authentication Service --------------------------------
+- name: company-sales-consumer-auth
+# -----------------------------------------------------------------------------
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./xs-security.json
+    service: xsuaa
+    service-plan: application
+
+# --------------------- Destination Service -----------------------------------
+- name: company-sales-consumer-dest
+# -----------------------------------------------------------------------------
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: destination
+    service-plan: lite

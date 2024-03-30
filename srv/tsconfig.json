@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "types": [
+            "express",
+            "node"
+        ],
+        "target": "ES2022",
+        "strict": true,
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "resolveJsonModule": true,
+        "noEmitOnError": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "allowUnreachableCode": false,
+        "outDir": "dist",
+        "allowSyntheticDefaultImports": true
+    },
+    "include": [
+        "**/*.ts",
+        "package.json"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

@@ -1,0 +1,8 @@
+{
+    "xsappname": "company-sales-consumer",
+    "tenant-mode": "dedicated",
+    "description": "Authorization Configurations for Company Sales Consumer",
+    "scopes": [],
+    "role-templates": [],
+    "role-collections": []
+}

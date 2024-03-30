@@ -1,0 +1,7 @@
+{
+    "CompanySales.edmx": {
+        "packageName": "company-sales",
+        "directoryName": "company-sales",
+        "basePath": "/odata/v4/company-sales/"
+    }
+}
