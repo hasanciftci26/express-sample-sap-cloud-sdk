@@ -1,0 +1,5 @@
+{
+    "input": "./CompanySales.edmx",
+    "outputDir": "./",
+    "optionsPerService": "./options-per-service.json"
+}

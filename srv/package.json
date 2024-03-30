@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "node server.js",
-    "build": "npx tsc"
+    "compile": "npx tsc"
   },
   "keywords": [
     "Express.js",

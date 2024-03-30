@@ -74,11 +74,7 @@
           <ReferentialConstraint Property="productID" ReferencedProperty="ID"/>
         </NavigationProperty>
       </EntityType>
-      <ComplexType Name="ProductPlant">
-        <Property Name="productID" Type="Edm.Guid"/>
-        <Property Name="newPlant" Type="Edm.String" MaxLength="4"/>
-      </ComplexType>
-      <ComplexType Name="SalesReport">
+      <ComplexType Name="return_CompanySales_generateSalesReport">
         <Property Name="salesID" Type="Edm.Guid"/>
         <Property Name="itemNo" Type="Edm.Int32"/>
         <Property Name="productID" Type="Edm.Guid"/>
@@ -91,10 +87,11 @@
         <Property Name="quantity" Type="Edm.Int32"/>
       </ComplexType>
       <Function Name="generateSalesReport" IsBound="false" IsComposable="false">
-        <ReturnType Type="Collection(CompanySales.SalesReport)" Nullable="false"/>
+        <ReturnType Type="Collection(CompanySales.return_CompanySales_generateSalesReport)" Nullable="false"/>
       </Function>
       <Action Name="updateProductPlant" IsBound="false">
-        <Parameter Name="product" Type="CompanySales.ProductPlant"/>
+        <Parameter Name="productID" Type="Edm.Guid"/>
+        <Parameter Name="newPlant" Type="Edm.String" MaxLength="4"/>
         <ReturnType Type="Edm.Boolean"/>
       </Action>
       <Annotations Target="CompanySales.Products/ID">

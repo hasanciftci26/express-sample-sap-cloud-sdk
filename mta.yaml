@@ -7,7 +7,7 @@ build-parameters:
   before-all:
     - builder: custom
       commands:
-        - npm --prefix srv run build
+        - npm --prefix srv run compile
 modules:
 # ------------------- Backend Nodejs Module -----------------------------------
 - name: company-sales-consumer-srv
