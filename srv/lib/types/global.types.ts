@@ -1,4 +1,5 @@
 import { PlantsType, ProductsType } from "../external/company-sales";
+import { BigNumber } from "bignumber.js";
 
 export interface CreatePlantType {
     id: string;
@@ -14,7 +15,7 @@ export interface CreateProductType {
     id?: string;
     name: string;
     plant: string;
-    price: Number;
+    price: BigNumber;
     currency?: string | null;
 }
 
