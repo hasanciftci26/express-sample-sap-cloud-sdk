@@ -2,7 +2,8 @@
     "compilerOptions": {
         "types": [
             "express",
-            "node"
+            "node",
+            "sap__xsenv"
         ],
         "target": "ES2022",
         "strict": true,
@@ -13,12 +14,14 @@
         "noImplicitAny": true,
         "noImplicitThis": true,
         "allowUnreachableCode": false,
+        "sourceMap": true,
         "outDir": "dist",
         "allowSyntheticDefaultImports": true
     },
     "include": [
         "**/*.ts",
-        "package.json"
+        "package.json",
+        "default-env.json"
     ],
     "exclude": [
         "node_modules"

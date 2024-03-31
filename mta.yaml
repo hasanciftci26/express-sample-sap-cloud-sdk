@@ -24,6 +24,9 @@ modules:
   parameters:
     disk-quota: 256M
     memory: 256M
+  build-parameters:
+    ignore:
+    - default-env.json    
 resources:
 # --------------------- Authentication Service --------------------------------
 - name: company-sales-consumer-auth
