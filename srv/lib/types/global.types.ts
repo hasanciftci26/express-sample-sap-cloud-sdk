@@ -25,6 +25,10 @@ export interface UpdateProductRouteParams {
     productId: string;
 }
 
+export interface UpdateProductPlant {
+    plant: string;
+}
+
 export interface SalesRouteParams {
     salesId: string;
 }

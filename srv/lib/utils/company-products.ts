@@ -2,7 +2,7 @@ import { Products, ProductsType, batch } from "../external/company-sales";
 import DataCheck from "./data-check";
 import { companySales } from "../external/company-sales";
 import { BatchResponse, GetByKeyRequestBuilder, desc, or } from "@sap-cloud-sdk/odata-v4";
-import { CustomError, UpdateMethodType, UpdateProductRouteParams } from "../types/global.types";
+import { CustomError, UpdateMethodType, UpdateProductPlant, UpdateProductRouteParams } from "../types/global.types";
 import { ErrorWithCause } from "@sap-cloud-sdk/util";
 
 export default class CompanyProducts extends DataCheck {
@@ -183,5 +183,22 @@ export default class CompanyProducts extends DataCheck {
             },
             []
         );
+    }
+
+    public async updateProductPlant(productId: string, newProductPlant: UpdateProductPlant): Promise<ProductsType> {
+        const { productsApi, operations: { updateProductPlant } } = companySales();
+
+        try {
+            await updateProductPlant({ productId: productId, newPlant: newProductPlant.plant }).execute({ destinationName: this.destination });
+            const updatedProduct = await productsApi.requestBuilder().getByKey(productId).execute({ destinationName: this.destination });
+            return updatedProduct;
+        } catch (error) {
+            if (error instanceof ErrorWithCause) {
+                const generatedError = super.generateError(error.cause.message);
+                throw new CustomError(generatedError.message, generatedError.status);
+            } else {
+                throw error;
+            }
+        }
     }
 }

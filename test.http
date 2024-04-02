@@ -54,6 +54,14 @@ Content-Type: application/json
 ]
 
 ###
+PATCH http://localhost:3000/product/0f6a89be-374d-493b-b648-659e67d7aaab/plant
+Content-Type: application/json
+
+{
+    "plant": "1003"
+}
+
+###
 POST http://localhost:3000/product
 Content-Type: application/json
 

@@ -1,9 +1,31 @@
 import express, { Router, Request, Response, NextFunction } from "express";
-import { ReadProductQueryParams, ReadProductRouteParams, UpdateProductRouteParams } from "../types/global.types";
+import { ReadProductQueryParams, ReadProductRouteParams, UpdateProductPlant, UpdateProductRouteParams } from "../types/global.types";
 import { ProductsType } from "../external/company-sales";
 import CompanyProducts from "../utils/company-products";
 
 const router: Router = express.Router();
+
+router.post("/batch", async (req: Request<{}, {}, Array<UpdateProductRouteParams>>, res: Response<Array<ProductsType>>, next: NextFunction) => {
+    const compProducts: CompanyProducts = new CompanyProducts("company-sales");
+
+    try {
+        const products = await compProducts.readProductsBatch(req.body);
+        res.json(products);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.patch("/:productId/plant", async (req: Request<UpdateProductRouteParams, {}, UpdateProductPlant>, res: Response<ProductsType>, next: NextFunction) => {
+    const compProducts: CompanyProducts = new CompanyProducts("company-sales");
+
+    try {
+        const updatedProduct = await compProducts.updateProductPlant(req.params.productId, req.body);
+        res.json(updatedProduct);
+    } catch (error) {
+        next(error);
+    }
+});
 
 router.get("/:productId?", async (req: Request<ReadProductRouteParams, {}, {}, ReadProductQueryParams>, res: Response<ProductsType[] | ProductsType>, next: NextFunction) => {
     const compProducts: CompanyProducts = new CompanyProducts("company-sales");
@@ -55,17 +77,6 @@ router.delete("/:productId", async (req: Request<UpdateProductRouteParams, {}, P
     try {
         await compProducts.deleteProduct(req.params.productId);
         res.sendStatus(204);
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.post("/batch", async (req: Request<{}, {}, Array<UpdateProductRouteParams>>, res: Response<Array<ProductsType>>, next: NextFunction) => {
-    const compProducts: CompanyProducts = new CompanyProducts("company-sales");
-
-    try {
-        const products = await compProducts.readProductsBatch(req.body);
-        res.json(products);
     } catch (error) {
         next(error);
     }
