@@ -5,33 +5,98 @@ GET http://localhost:3000/plant
 GET http://localhost:3000/plant?location=Mannheim
 
 ###
+GET http://localhost:3000/plant/10011
+
+###
 POST http://localhost:3000/plant
 Content-Type: application/json
 
 {
-    "id": "1005",
-    "name": "Mannheim Factory",
-    "location": "Mannheim"
+    "id": "1006",
+    "name": "Izmir Factory",
+    "location": "Izmir"
+}
+
+###
+PATCH http://localhost:3000/plant/1004
+Content-Type: application/json
+
+{
+    "location": "Heidelberg"
 }
 
 ###
 GET http://localhost:3000/product
 
 ###
-GET http://localhost:3000/product?name=iPhone 14
+GET http://localhost:3000/product?productName=iPhone 14
 
 ###
 GET http://localhost:3000/product?plant=1001
 
 ###
-GET http://localhost:3000/product?name=iPhone 14&plant=1002
+GET http://localhost:3000/product?productName=iPhone 14&plant=1002
+
+###
+GET http://localhost:3000/product/185abbe1-ec2c-447b-b51f-eae2bd8efd47
+
+###
+POST http://localhost:3000/product/batch
+Content-Type: application/json
+
+[
+    {
+        "productId": "0f6a89be-374d-493b-b648-659e67d7aaab"
+    },
+    {
+        "productId": "1513417b-42b9-4be7-b2b8-2c7cc106e84c"
+    }
+]
 
 ###
 POST http://localhost:3000/product
 Content-Type: application/json
 
 {
-    "name": "iPhone 15 Pro Max",
+    "id": "185abbe1-ec2c-447b-b51f-eae2bd8efd47",
+    "name": "iPhone 12",
     "plant": "1003",
-    "price": 1600
+    "price": 600
 }
+
+###
+POST http://localhost:3000/sales
+Content-Type: application/json
+
+{
+    "currency": "EUR",
+    "toSalesItems": [{
+        "itemNo": 1,
+        "quantity": 1,
+        "productId": "0f6a89be-374d-493b-b648-659e67d7aaab"
+    },{
+        "itemNo": 2,
+        "quantity": 1235,
+        "productId": "1513417b-42b9-4be7-b2b8-2c7cc106e84c"
+    }]
+}
+
+###
+POST http://localhost:3000/sales/ebd4a434-4409-4775-a699-2946eec169e2/items
+Content-Type: application/json
+
+[
+    {
+        "itemNo": 15,
+        "quantity": 1,
+        "productId": "0f6a89be-374d-493b-b648-659e67d7aaab"
+    },
+    {
+        "itemNo": 20,
+        "quantity": 1235,
+        "productId": "1513417b-42b9-4be7-b2b8-2c7cc106e84c"
+    }
+]
+
+###
+GET http://localhost:3000/sales/report

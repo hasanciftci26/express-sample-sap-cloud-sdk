@@ -1,119 +1,114 @@
-import ICompanySales, { CreateProductType, CustomError } from "../types/global.types";
-import { companySales, PlantsType, Plants, Products, ProductsType } from "../external/company-sales";
-import { and, or } from "@sap-cloud-sdk/odata-v4";
+import { ReturnCompanySales_GenerateSalesReport, SalesHeadersType, SalesItems, SalesItemsType, batch, changeset, companySales } from "../external/company-sales";
+import DataCheck from "./data-check";
+import { ErrorWithCause } from "@sap-cloud-sdk/util";
+import { CustomError } from "../types/global.types";
+import { CreateRequestBuilder } from "@sap-cloud-sdk/odata-v4";
 
-export default class CompanySales implements ICompanySales {
-    private destinationName: string;
+export default class CompanySales extends DataCheck {
+    private destination: string;
 
-    constructor(destinationName: string) {
-        this.destinationName = destinationName;
+    constructor(destination: string) {
+        super();
+        this.destination = destination;
     }
 
-    public async readPlants(location: string | null = null) {
-        const { plantsApi } = companySales();
-        let plants: PlantsType[] | [] = [];
+    public async generateSalesReport(): Promise<ReturnCompanySales_GenerateSalesReport[]> {
+        const { operations: { generateSalesReport } } = companySales();
 
         try {
-            if (location) {
-                plants = await plantsApi.requestBuilder()
-                    .getAll()
-                    .filter(
-                        plantsApi.schema.LOCATION.equals(location)
-                    )
-                    .execute({ destinationName: this.destinationName });
+            const salesReport = await generateSalesReport({}).execute({ destinationName: this.destination });
+            return salesReport;
+        } catch (error) {
+            if (error instanceof ErrorWithCause) {
+                const generatedError = super.generateError(error.cause.message);
+                throw new CustomError(generatedError.message, generatedError.status);
             } else {
-                plants = await plantsApi.requestBuilder().getAll().execute({ destinationName: this.destinationName });
+                throw error;
             }
-        } catch (error) {
-            throw error;
         }
-
-        return plants;
     }
 
-    public async createPlant(plant: PlantsType) {
-        const { plantsApi } = companySales();
-        const buildPlant: Plants = plantsApi.entityBuilder()
-            .id(plant.id)
-            .name(plant.name)
-            .location(plant.location)
-            .build();
+    public async createSales(newSales: SalesHeadersType): Promise<SalesHeadersType> {
+        const { salesHeadersApi } = companySales();
 
         try {
-            this.checkMandatoryFields(["id", "name"], plant);
-            await plantsApi.requestBuilder().create(buildPlant).execute({ destinationName: this.destinationName });
-        } catch (error) {
-            throw error;
-        }
+            super.checkMandatoryFields("Sales Header", ["currency"], newSales);
+            super.checkComputedFields(["totalPrice"], newSales);
 
-        return plant;
-    }
-
-    public async readProducts(name: string | null = null, plant: string | null = null) {
-        const { productsApi, plantsApi } = companySales();
-        let products: ProductsType[] | [] = [];
-
-        try {
-            if (name || plant) {
-                products = await productsApi.requestBuilder()
-                    .getAll()
-                    .select(
-                        productsApi.schema.ID,
-                        productsApi.schema.NAME,
-                        productsApi.schema.PLANT,
-                        productsApi.schema.PRICE,
-                        productsApi.schema.CURRENCY
-                    )
-                    .filter(
-                        or(
-                            productsApi.schema.NAME.equals(name),
-                            productsApi.schema.PLANT.equals(plant)
-                        )
-                    )
-                    .expand(productsApi.schema.TO_PLANT.select(
-                        plantsApi.schema.NAME
-                    ))
-                    .execute({ destinationName: this.destinationName });
+            if (!newSales.toSalesItems) {
+                throw new CustomError("At least 1 item must be created!", 422);
             } else {
-                products = await productsApi.requestBuilder()
-                    .getAll()
-                    .execute({ destinationName: this.destinationName });
+                if (!newSales.toSalesItems.length) {
+                    throw new CustomError("At least 1 item must be created!", 422);
+                }
+
+                newSales.toSalesItems.forEach((item) => {
+                    super.checkMandatoryFields("Sales Items", ["itemNo", "productId", "quantity"], item);
+                    super.checkComputedFields(["unitPrice", "currency"], item);
+                });
             }
+
+            const newSalesEntity = salesHeadersApi.entityBuilder().fromJson(newSales);
+            const createdSales = await salesHeadersApi.requestBuilder().create(newSalesEntity).execute({ destinationName: this.destination });
+
+            newSales.id = createdSales.id;
+            newSales.currency = createdSales.currency;
+            newSales.totalPrice = createdSales.totalPrice;
+
+            createdSales.toSalesItems.forEach((item) => {
+                const createdItem = newSales.toSalesItems.find(salesItem => salesItem.itemNo === item.itemNo);
+
+                if (createdItem) {
+                    createdItem.salesId = item.salesId;
+                    createdItem.currency = item.currency;
+                }
+            });
         } catch (error) {
-            throw error;
+            if (error instanceof ErrorWithCause) {
+                const generatedError = super.generateError(error.cause.message);
+                throw new CustomError(generatedError.message, generatedError.status);
+            } else {
+                throw error;
+            }
         }
 
-        return products;
+        return newSales;
     }
 
-    public async createProduct(product: CreateProductType) {
-        const { productsApi } = companySales();
-        const buildProduct: Products = productsApi.entityBuilder().fromJson(product);
+    public async createSalesItems(salesId: string, salesItems: SalesItemsType[]): Promise<SalesItemsType[]> {
+        const { salesHeadersApi, salesItemsApi } = companySales();
 
         try {
-            this.checkMandatoryFields(["name", "plant", "price"], product);
-            const newProduct = await productsApi.requestBuilder().create(buildProduct).execute({ destinationName: this.destinationName });
-            product.id = newProduct.id;
-            product.currency = newProduct.currency;
-        } catch (error) {
-            throw error;
-        }
+            const salesHeader = await salesHeadersApi.requestBuilder().getByKey(salesId).execute({ destinationName: this.destination });
+            const salesItemRequests: CreateRequestBuilder<SalesItems>[] = [];
 
-        return product;
-    }
+            salesItems.forEach((item) => {
+                const salesItemEntity = salesItemsApi.entityBuilder().fromJson(item);
+                salesItemRequests.push(
+                    salesItemsApi.requestBuilder().create(salesItemEntity).asChildOf(salesHeader, salesHeadersApi.schema.TO_SALES_ITEMS)
+                )
+            });
 
-    private checkMandatoryFields(fields: string[], requestBody: object) {
-        let missingMandatoryFields: string[] = [];
+            const batchResponse = await batch(
+                changeset(...salesItemRequests)
+            )
+            .withSubRequestPathType("relativeToEntity")
+            .execute({ destinationName: this.destination });
 
-        fields.forEach((field) => {
-            if (!requestBody.hasOwnProperty(field)) {
-                missingMandatoryFields.push(field);
+            const changesetResponse = batchResponse[0];
+
+            if (changesetResponse.isWriteResponses()) {
+                return changesetResponse.responses.map(response => response.as!(salesItemsApi));
             }
-        });
 
-        if (missingMandatoryFields.length) {
-            const errorMessage = "Missing mandatory field" + (missingMandatoryFields.length === 1 ? ": " : "s: ") + missingMandatoryFields.join();
-            throw new CustomError(errorMessage, 422);
+            throw new CustomError(changesetResponse.body.error.message, changesetResponse.body.error.code);
+        } catch (error) {
+            if (error instanceof ErrorWithCause) {
+                const generatedError = super.generateError(error.cause.message);
+                throw new CustomError(generatedError.message, generatedError.status);
+            } else {
+                throw error;
+            }
         }
     }
 }
