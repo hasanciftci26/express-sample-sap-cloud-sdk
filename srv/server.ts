@@ -10,6 +10,8 @@ loadEnv(path.join(__dirname, "default-env.json"));
 const port: number | string = process.env.PORT || 3000;
 const app: Express = express();
 
+// Commented by Tarik.
+
 // Add JSON middleware to parse JSON data
 app.use(express.json());
 
